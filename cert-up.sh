@@ -15,6 +15,13 @@ CRT_PATH=${CRT_BASE_PATH}/_archive/${CRT_PATH_NAME}
 FIND_MAJORVERSION_FILE="/etc/VERSION"
 FIND_MAJORVERSION_STR="majorversion=\"7\""
 
+ACME_API="https://api.github.com/repos/acmesh-official/acme.sh/releases/latest"
+ACME_REPO="https://github.com/acmesh-official/acme.sh/archive/refs/tags/"
+
+function getOnlineVersion(){
+  TAG_NAME=`curl -s "${ACME_API}" | jq -r .tag_name`
+}
+
 backupCrt () {
   echo 'begin backupCrt'
   BACKUP_PATH=${BASE_ROOT}/backup/${DATE_TIME}
@@ -30,10 +37,17 @@ installAcme () {
   echo 'begin installAcme'
   mkdir -p ${TEMP_PATH}
   cd ${TEMP_PATH}
+  source ${BASE_ROOT}/config
+  if [[ $ACME_VERSION = "" ]] ; then
+    getOnlineVersion
+    ACME_VERSION=$TAG_NAME
+    echo "online latest version is Ver"$ACME_VERSION
+  else 
+    echo "The upcoming download version is Ver"$ACME_VERSION
+  fi
   echo 'begin downloading acme.sh tool...'
-  ACME_SH_ADDRESS=`curl -L https://raw.githubusercontent.com/li-peifeng/syno-acme/refs/heads/main/acme.sh.address`
   SRC_TAR_NAME=acme.sh.tar.gz
-  curl -L -o ${SRC_TAR_NAME} ${ACME_SH_ADDRESS}
+  curl -L -o ${SRC_TAR_NAME} ${ACME_REPO}${ACME_VERSION}.tar.gz
   SRC_NAME=`tar -tzf ${SRC_TAR_NAME} | head -1 | cut -f1 -d"/"`
   tar zxvf ${SRC_TAR_NAME}
   echo 'begin installing acme.sh tool...'
@@ -51,7 +65,7 @@ generateCrt () {
   echo 'begin updating default cert by acme.sh tool'
   source ${ACME_BIN_PATH}/acme.sh.env
   ${ACME_BIN_PATH}/acme.sh --force --log --issue --dns ${DNS} --dnssleep ${DNS_SLEEP} -d "${DOMAIN}" -d "*.${DOMAIN} -k ec-256"
-  ${ACME_BIN_PATH}/acme.sh --force --installcert -d ${DOMAIN} -d *.${DOMAIN} -ecc \
+  ${ACME_BIN_PATH}/acme.sh --force --installcert -d ${DOMAIN} -d *.${DOMAIN} --ecc\
     --certpath ${CRT_PATH}/cert.pem \
     --key-file ${CRT_PATH}/privkey.pem \
     --fullchain-file ${CRT_PATH}/fullchain.pem
@@ -94,9 +108,9 @@ reloadWebService () {
     echo "MajorVersion = 7, no need to reload apache"
   else
 	echo 'relading Apache on DSM 6.x'
-	# stop pkg-apache22
-	# start pkg-apache22
-	# reload pkg-apache22
+	synopkg stop pkg-apache22
+	synopkg start pkg-apache22
+	synopkg reload pkg-apache22
   fi  
   echo 'done reloadWebService'  
 }
