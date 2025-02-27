@@ -41,25 +41,23 @@ installAcme () {
   if [[ -z "${ACME_VERSION}" ]] ; then
     getOnlineVersion
     ACME_VERSION="${TAG_NAME}"
-    echo "网上最新版本是Ver: ${ACME_VERSION}"
+    echo "网络最新版本: ${ACME_VERSION}"
   else 
-    echo "目标安装版本是Ver: ${ACME_VERSION}"
+    echo "目标安装版本: ${ACME_VERSION}"
   fi
   local LOCAL_VER=""
   if [[ -f "${ACME_BIN_PATH}/acme.sh" ]]; then
-    LOCAL_VER=$("${ACME_BIN_PATH}/acme.sh" --version 2>/dev/null | 
-               grep -Eo 'v?[0-9]+\.[0-9]+\.[0-9]+' | 
-               head -1)
+    LOCAL_VER=$("${ACME_BIN_PATH}/acme.sh" --version 2>/dev/null | grep -Eo 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -1 | sed 's/^v//')
     LOCAL_VER_CLEAN="${LOCAL_VER//v/}"
     ACME_VER_CLEAN="${ACME_VERSION//v/}"
     if [[ -n "${LOCAL_VER}" ]]; then
-      echo "找到已安装版本: ${LOCAL_VER}"
+      echo "本地已安装版本: ${LOCAL_VER}"
       if [[ "${LOCAL_VER_CLEAN}" == "${ACME_VER_CLEAN}" ]]; then
-        echo "版本相同 (本地:${LOCAL_VER} 和 目标:${ACME_VERSION})， 跳过下载步骤。"
+        echo "本地版本:${LOCAL_VER} 和 网络版本:${ACME_VERSION} 对比相同，跳过下载步骤。"
         rm -rf "${TEMP_PATH}"
         return 0
       else
-        echo "版本不同: 本地=${LOCAL_VER}, 目标=${ACME_VERSION}， 将进行更新。"
+        echo "版本对比不同: 本地=${LOCAL_VER}, 网络=${ACME_VERSION}，将进行更新安装。"
       fi
     else
       echo "[注意] 本地版本获取失败，将重新安装。"
