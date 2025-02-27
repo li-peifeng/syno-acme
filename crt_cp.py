@@ -1,7 +1,5 @@
 #!/bin/python2
 
-# this script copies cert recorded in INFO file from src to des.
-
 import json
 import sys
 import shutil
