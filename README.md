@@ -1,5 +1,9 @@
-# syno-acme
+<p align="center">
+  <a href="https://peifeng.li"><img width="184px" alt="logo" src="https://li-peifeng.github.io/isweet/logo.png" />
+  </a>
+</p>
 
+# syno-acme
 1. 拉取最新的 ACME.SH 官方库
 2. 默认拉取最新版本，添加本地已安装检测，版本不同升级，相同则跳过下载。
 3. 默认申请 ECC 证书。
